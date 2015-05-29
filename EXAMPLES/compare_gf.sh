@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+#
+#  Copyright Daniele Melini & Giorgio Spada, 2014
+#
+#  This file is part of REAR.
+#
+#  REAR is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  REAR is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with REAR.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+#
+if [ $# -ne 2 ]; then 
+   echo "Usage: compare_gf.sh    <FILE1>   <FILE2>"
+   echo ""
+   exit
+fi
+#
+FILE1=$1
+FILE2=$2
+#
+echo ""
+echo ""
+echo "Comparing $FILE1 and $FILE2 ..."
+echo ""
+echo "Min/max ABSOLUTE differences: "
+paste $FILE1 $FILE2  |\
+    awk '{ print ($3-$8),($4-$9),($5-$10)}' |\
+    minmax -H13 -C |\
+    awk '{ printf "  - Vertical component:   %12.4e / %12.4e\n  - Horizontal component: %12.4e / %12.4e\n  - Geoid:                %12.4e / %12.4e\n", $1,$2,$3,$4,$5,$6 }'    
+#
+echo ""
+#
+echo "Min/max RELATIVE differences: "
+paste $FILE1 $FILE2  |\
+    awk '{ if ( (NR>13) && ($3 != 0) && ($4 != 0) && ($5 != 0) ) print (($3-$8)/$3),(($4-$9)/$4),(($5-$10)/$5)}' |\
+    minmax -C | \
+    awk '{ printf "  - Vertical component:   %12.4e / %12.4e\n  - Horizontal component: %12.4e / %12.4e\n  - Geoid:                %12.4e / %12.4e\n", $1,$2,$3,$4,$5,$6 }'    
+#
+echo ""
+echo ""

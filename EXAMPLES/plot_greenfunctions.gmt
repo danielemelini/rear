@@ -1,0 +1,62 @@
+#!/bin/sh
+#
+#  Copyright Giorgio Spada & Daniele Melini, 2014
+#
+#  This file is part of REAR.
+#
+#  REAR is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  REAR is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with REAR.  If not, see <http://www.gnu.org/licenses/>.
+#
+ gmtset PAPER_MEDIA A4+
+ gmtset HEADER_FONT_SIZE 24p
+ gmtset FRAME_WIDTH 0.1c
+ gmtset ANNOT_FONT_SIZE 10p
+ gmtset PAGE_ORIENTATION landscape
+# 
+ FILE_IN="gf_Greenland.dat"
+ FILE_OUT="greenfunctions_REF6371.ps" 
+ RANGE="-R0/0.2/-0.7/0.2"
+ PROJE="-JX15c/10c"
+#
+ psbasemap -Ba0.05f0.01/a0.1f0.1WeSn:."Green's functions (REF6371)": $PROJE $RANGE -K > $FILE_OUT
+ awk '{print $2,$3}' $FILE_IN  |     psxy $PROJE $RANGE -H13 -Wred   -O -K >> $FILE_OUT
+ awk '{print $2,$4}' $FILE_IN  |     psxy $PROJE $RANGE -H13 -Wgreen -O -K >> $FILE_OUT
+ awk '{print $2,$5}' $FILE_IN  |     psxy $PROJE $RANGE -H13 -Wblue  -O -K >> $FILE_OUT
+ psxy $PROJE $RANGE -M  -O -K << END >> $FILE_OUT
+> -Wthin/--
+ 0.02537  -0.8
+ 0.02537   0.2
+> -Wred
+ 0.11 -0.4
+ 0.13 -0.4
+> -Wgreen
+ 0.11 -0.45
+ 0.13 -0.45
+> -Wblue
+ 0.11 -0.5
+ 0.13 -0.5
+END
+#
+ pstext $PROJE $RANGE -N -O << END >> $FILE_OUT
+  0.14 -0.35 11  0  0 LM   rate of:
+  0.14 -0.40 11  0  0 LM   Vertical displacement
+  0.14 -0.45 11  0  0 LM   Horizontal displacement
+  0.14 -0.50 11  0  0 LM   Geoid height change
+ -0.025 -0.2  14 90  0 CM   Rates (mm/yr)
+  0.100 -0.8  14  0  0 CM   Co-latitude (degrees)
+END
+#
+#
+#
+#
+# --- END OF SCRIPT ---
