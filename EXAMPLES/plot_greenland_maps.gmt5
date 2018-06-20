@@ -1,0 +1,60 @@
+#!/bin/sh
+#
+#  Copyright Giorgio Spada & Daniele Melini, 2014
+#
+#  This file is part of REAR.
+#
+#  REAR is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  REAR is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with REAR.  If not, see <http://www.gnu.org/licenses/>.
+#
+  gmt gmtset PS_MEDIA A4
+  gmt gmtset FONT_TITLE 24p
+  gmt gmtset MAP_FRAME_WIDTH 0.1c
+  gmt gmtset FONT_ANNOT 10p
+  gmt gmtset PS_PAGE_ORIENTATION landscape
+# 
+  FILE_IN="uvg.dat"
+#
+  gmt makecpt -Crainbow -T-1/10/1 -D -Z > pale_2.cpt
+#
+#
+# 
+  awk '{print $1,$2,$3}'  $FILE_IN   | \
+      gmt xyz2grd -Gur.grd -I0.5 -R285/350/58/86
+#
+  IMG_RES="-E150"
+#
+  FILE_OUT="greenland-map.ps" 
+# 
+  RANGE="-R-55/57/18/82r"
+  PROJE="-JT-40/9c "
+#
+#
+  gmt psbasemap -Ba45f15/a10f5WseN $RANGE  $PROJE -K >  $FILE_OUT
+  gmt grdimage -O -K ur.grd $IMG_RES $PROJE $RANGE -Cpale_2.cpt >> $FILE_OUT
+  gmt pscoast  -L328/60/60/250:km:  -Dh -B -W1/0 -A100000 -S150 -O -K $RANGE  $PROJE  >> $FILE_OUT
+  gmt grdcontour -O -K ur.grd $PROJE $RANGE -A2+f9p,0,black -L-4/4 -Wa0.5,white >> $FILE_OUT
+#
+  gmt pstext   -F+f+a+j -B -Gwhite $PROJE $RANGE -O  -K << END >>            $FILE_OUT
+   320     67.5  11,3,blue 0   ML  HG
+   309.339 68.6  11,3,blue 0   ML  JI 
+   327.947 68.6  11,3,blue 0   ML  KG 
+   315.5     65  11,3,blue 0   ML  SG
+END
+#
+#
+  gmt psscale  -Cpale_2.cpt -Bf1a2/:mm/yr:  -D0.5/-2.0+w8/0.9+e+h+ma -O >> $FILE_OUT
+#
+#
+#
+# --- END OF SCRIPT ---
