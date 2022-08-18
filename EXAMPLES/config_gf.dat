@@ -1,0 +1,67 @@
+!
+! ###########################################   
+! Input parameters for program "make_gf.f90"
+! ###########################################   
+!
+!  Copyright Giorgio Spada & Daniele Melini, 2014
+!
+!
+!  This file is part of REAR.
+!
+!  REAR is free software: you can redistribute it and/or modify
+!  it under the terms of the GNU General Public License as published by
+!  the Free Software Foundation, either version 3 of the License, or
+!  (at your option) any later version.
+!
+!  REAR is distributed in the hope that it will be useful,
+!  but WITHOUT ANY WARRANTY; without even the implied warranty of
+!  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!  GNU General Public License for more details.
+!
+!  You should have received a copy of the GNU General Public License
+!  along with REAR.  If not, see <http://www.gnu.org/licenses/>.
+!
+! ##### Disc load parameters
+!
+ 917.0                      ! Ice density (kg/m^3)
+ 0.02537d0                  ! Half-amplitude of the load (deg)
+ 1                          ! Uncompensated (0) or compensated (1) load
+!
+!
+!
+! #### 1D Grid (two options available)
+!
+! Grid type (1-->Uniform, 2-->Stepsize increases
+ 1
+!
+! Minimum and maximum colatitude
+!
+ 0.   60.
+!
+! Grid stepsize and number of points.
+! For gridtype #1, only the (constant) stepsize is used.
+! For gridtype #2, stepsize is the minimum spacing.
+! *Negative steps are interpreted as alpha/(-step)*
+!
+ -5.0    1001
+!
+! #### Harmonic degrees
+!
+! Min/max harmonic degrees
+   1     32768
+!
+!
+! #### Asymptotic approximation of LNs
+! 
+ 0        ! Extend LNs using asymptotic expressions? (1->Yes, 0->No)
+ 10       ! Number of harmonic degrees used to compute the asymptotic limit  
+ 100000   ! Maximum harmonic degree for the asymptotic extension
+!
+! ##### File name for Load-deformation coefficients (input) 
+!
+./DATA/REF_6371_loading_love_numbers.txt
+!
+!
+! ##### File name for gridded Green Function (output) 
+gf_Greenland.dat
+!

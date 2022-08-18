@@ -1,0 +1,72 @@
+!
+! ###########################################   
+! Input parameters for program "make_map.f90"
+! ###########################################   
+!
+!  Copyright Giorgio Spada & Daniele Melini, 2014
+!
+!
+!  This file is part of REAR.
+!
+!  REAR is free software: you can redistribute it and/or modify
+!  it under the terms of the GNU General Public License as published by
+!  the Free Software Foundation, either version 3 of the License, or
+!  (at your option) any later version.
+!
+!  REAR is distributed in the hope that it will be useful,
+!  but WITHOUT ANY WARRANTY; without even the implied warranty of
+!  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!  GNU General Public License for more details.
+!
+!  You should have received a copy of the GNU General Public License
+!  along with REAR.  If not, see <http://www.gnu.org/licenses/>.
+!
+! 
+! >>>> ICE MODEL  
+!
+./DATA/greeM3R.dat
+ 0                              ! Ice model includes uncertainties (0->no, 1->yes)
+!
+! >>>> GREEN'S FUNCTION  
+!
+gf_Greenland.dat
+ 1                           ! grid style (1=uniform, 2=increasingly sparse)
+!
+!
+! >>>> SELECTION of the OUTPUT <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!
+! 1 ---> Rates of displacement are on a 2D grid
+! 2 ---> Rates of displacement on isolated points
+!
+ 1
+!
+! -------------------------------------------------------------
+! >>>> PARAMETERS for IWHERE = 1 (2D grid) <<<<<<<<<<<<<<<<<<<<
+! -------------------------------------------------------------
+!
+!
+ 2            ! Grid type (1=Tegmark, 2=lon/lat)       
+!
+ 100.0        ! Pixel area for GRD_TYPE=1 (km^2)    
+ 0.5          ! Grid spacing for GRD_TYPE=2 (deg) 
+!
+ 285.0    350.0   ! Region boundaries (lon) (for both types)
+ 58.0      86.0   ! Region boundaries (lat) 
+! 
+! Output file
+ uvg.dat
+!
+! -------------------------------------------------------------
+! >>>> PARAMETERS for IWHERE = 2 (isolated points) <<<<<<<<<<<<
+! -------------------------------------------------------------
+!
+!
+ GPS-points.dat
+!
+!
+ GPS-out.dat
+!
+!
+!
+!
+ 

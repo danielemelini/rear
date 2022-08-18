@@ -1,200 +1,84 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!       THE ICOSAHEDRON PACKAGE FOR PIXELIZING THE SPHERE        !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
+!    Written by Max Tegmark, Max-Planck-Institut fuer Physik, Munich
+!    April 1996
+!    Currently I'm at MIT, tegmark@mit.edu
+!    Bug in vector2pixel fixed by Robert Berry in May 13
 !
-!  This file is part of REAR (v. 1.0)
+!  WHAT IS IT?
+!    This FORTRAN package lets the user pixelize the sphere at 
+!    a wide range of resolutions. It was written primarily for 
+!    map-making in astronomy and cosmology. It is also useful 
+!    for doing integrals over the sphere when the integrand is 
+!    expensive to evaluate, so that one wishes to minimize the 
+!    number of points used.
 !
-!  REAR is free software: you can redistribute it and/or modify
-!  it under the terms of the GNU General Public License as published by
-!  the Free Software Foundation, either version 3 of the License, or
-!  (at your option) any later version.
+!  DOCUMENTATION:
+!    The package and its purpose is described in detail in 
+!    a postscript file available from
+!      http://www.mpa-garching.mpg.de/~max/icosahedron.html
+!    (faster from Europe) and from from 
+!      http://sns.ias.edu.edu/~max/icosahedron.html
+!    (faster from the US). This site also contains the latest 
+!    version of the source code.
 !
-!  REAR is distributed in the hope that it will be useful,
-!  but WITHOUT ANY WARRANTY; without even the implied warranty of
-!  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!  GNU General Public License for more details.
+!  RULES:
+!    The package is public domain, which means that you are
+!    allowed to use it for any non-commercial purpose whatsoever 
+!    free of charge. The only requirement is that you include an 
+!    appropriate acknowledgement in any publications based on
+!    work where the package has been used. Also, if you 
+!    redistribute the package, you must not remove this text.
 !
-!  You should have received a copy of the GNU General Public License
-!  along with REAR.  If not, see <http://www.gnu.org/licenses/>.
+!  HOW IT WORKS:
+!    As a supplement to the above-mentioned postscript file, 
+!    here is a brief summary of the nitty-gritty details. 
+!    To use the package, first call the subroutines 
+!    compute_matrices and compute_corners once and for all, 
+!    as in the demo routine below. This precomputes some 
+!    geometric stuff to save time later.
+!    The RESOLUTION is a positive integer 1, 2, 3, ... that you
+!    can choose freely. It determines the number of pixels, which
+!    is given by 
+!       N = 40*resolution*(resolution-1)+12.
+!    For instance, resolution=13 gives N=6252 pixels.
+!    The only subroutines you ever need to use are these two:
+!    * vector2pixel takes a point on the sphere (specified by a 
+!      unit vector) and returns the number of the pixel to which
+!      this point belongs, i.e., an integer between 0 and N-1.
+!    * pixel2vector does the opposite: it takes a pixel number and
+!      computes the corresponding unit vector.
+!    The subroutine "demo" below illustrates how the routines are used.
+!    It produces a text file with the coordinates of all pixels
+!    together with their pixel numbers. It also outputs the pixel 
+!    number reconstructed with vector2pixel, so you can verify that 
+!    it all works as it should by checking that the first two columns
+!    in the file are identical.
 !
-! ------------------------------------------------------------------
+!  YOU DON'T NEED TO KNOW THIS:      
+!    The resolution is defined so that the number of pixels along 
+!    the side of a triangular face is 2*resolution, so there are 
+!    resolution*(2*resolution+1) pixels on each of the 20 faces of 
+!    the icosahedron. To avoid counting pixels on edges more than 
+!    once, the edge pixels are split up half-and-half between the
+!    two faces to which the edge belongs, so each face in fact
+!    only contains 2*resolution*(resolution-1) pixels if you ignore the corners. 
+!    The 12 corner pixels aren't lumped in with any face at all,
+!    so you can see them listed separately as the last 12 pixels
+!    in test.dat if you run the demo. 
+!    This makes 40*resolution*(resolution-1) + 12 pixels all in all.
+!    Thanks to Christopher Weth for catching typos in an earlier version
+!    of this documentation!
 !
-! File "hrm.f90" contains the following program units:
-!
-!	- Subroutine "PLEgendre":
-!              Legendre polynomials (from SHTOOLS) 
-!              see: <http://shtools.ipgp.fr>		
-!
-!       - Subroutine "FINDPX":
-!	       Coordinates of the pixels of the Tegmark grid        		
-!
-!       - subroutine "vector2pixel" (and its dependencies):
-!	       Icosahedron Package for Pixelizing the Sphere 
-!              written entierely by Mark Tegmark
-!              see: <http://space.mit.edu/home/tegmark/icosahedron.html>	
-!              
-!       - Functions "SINDD" and "COSDD"
-!              Real*8 cosine and sine (argument in degres)
-!
-!       - subroutine "count_rows":
-!          Counts the number of rows in a text file
-!
-!
-! Last review by GS on Aug 9, 2013. 
-!
-! ------------------------------------------------------------------
-!
-!
-!
-!
-!
-!
-subroutine PLegendre(p, lmax, z)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!
-!	This subroutine evalutates all of the unnormalized Legendre polynomials 
-!	up to degree lmax. 
-!
-!	Calling Parameters:
-!		Out
-!			p:	A vector of all unnormalized Legendgre polynomials evaluated at 
-!				z up to lmax. The lenght must by greater or equal to (lmax+1).
-!		IN
-!			lmax:	Maximum degree to compute.
-!			z:	Value within [-1, 1], cos(colatitude) or sin(latitude).
-!
-!	Notes:
-!	
-!	1.	The integral of Pl**2 over (-1,1) is 2/(2l+1).
-!	2.	Values are calculated accoring to the following recursion scheme:
-!			P_0(z) = 1.0, P_1(z) = z, and 
-!			P_l(z) = (2l-1) * z * P_{l-1}(z) / l - (l-1) * P_{l-2}(z) / l
-!
-!	Dependencies:	None
-!
-!	Written by Mark Wieczorek June 2004
-!
-! ----> Modified to SINGLE PRECISION by Giorgio Spada 2007 
-! ----> Also modified for the management of ERROR conditions 
-!
-!	Copyright (c) 2005, Mark A. Wieczorek
-!	All rights reserved.
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
-	implicit none
-	integer, intent(in) ::	lmax
-	real*8 paux(lmax+1)	
-	real*8, intent(out) ::	p(0:lmax+1)		
-       	real*8, intent(in) ::	z
-       	real*8 :: pm2, pm1, pl
-      	integer :: l, j
-
-	if(size(p) < lmax+1) then
- 	        Write(* ,*) "Error --- PlegendreL" 
-		Write(* ,*) "P must be dimensioned as (LMAX+1) where LMAX is ", lmax
-		Write(* ,*) "Input array is dimensioned ", size(p)
-		Write(* ,*) "The program will STOP ----------------"	   
-	        Stop
-     	elseif (lmax < 0) then 
- 	        Write(* ,*) "Error --- PlegendreL" 
-		Write(* ,*) "LMAX must be greater than or equal to 0."
-		Write(* ,*) "Input value is ", lmax
-		Write(* ,*) "The program will STOP ----------------"	   
-     	elseif(abs(z) > 1.) then
- 	        Write(* ,*) "Error --- PlegendreL" 
-		Write(* ,*) "ABS(Z) must be less than or equal to 1."
-		Write(* ,*) "Input value is ", z
-		Write(* ,*) "The program will STOP ----------------"	   
-	        Stop
-     	endif
-      	
-   	pm2  = 1.
-      	paux(1) = 1.
-      	
-      	pm1  = z
-      	paux(2) = pm1
-      	
-      	do l = 2, lmax
-         	pl = (float(2*l-1) * z * pm1 - float(l-1) * pm2)/float(l)
-         	paux(l+1) = pl
-         	pm2  = pm1
-         	pm1  = pl
-      	enddo
-!
-        do j=0, lmax
-             p(j)=paux(j+1)
-	enddo
-!
-end subroutine PLegendre
-!
-!
-!
-!
-!
-!
-	Subroutine FINDPX(RES,NP,LONP,LATP)
-!
-	implicit NONE 
-!
-! # Given resolution RES, this routine returns the number of pixels NP,
-!   and the longitude and latitude arrays LONP, LATP (1:NP) with the pixels
-!   coordinates. THis done through a call to "pixel2vector" by M. Tegmark- 
-!   
-!   Written by GS on October 2, 2008 for the implementation of the 
-!   3D velocity maps for SELEN 2.7 - but perhaps useful also for other 
-!   purposes... 
-!
-	INTEGER J, NP, RES
-        REAL*4 R(0:19,3,3), V(0:11,3), VECT(3), X,Y,Z  
-	REAL*4 LONP(1:NP), LATP(1:NP), LONPX, LATPX  
-	REAL*4,  PARAMETER :: PI=3.14159265358979323840 
-!
-        call compute_matrices (r)
-        call compute_corners  (v)
-!
-	np=40*res*(res-1)+12 
-!
-        do 1 j=0,np-1
-	  	call pixel2vector (j,res,r,v,vect)
-	        x=vect(1)
-		y=vect(2)
-		z=vect(3)
-! 
-! --- Polar pixel 
-          	if(x==0..and.y==0.) then 
-          		lonpx=0.
-                	if(z>=0.) latpx = +90.
-                	if(z<=0.) latpx = -90.
-! --- Ordinary pixel 
-	  		else                         	  
-	  		lonpx = atan2(y,x)*180./pi 
-          		if (lonpx < 0.) lonpx=360.+ lonpx
-          		latpx = 90.-acos(z)*180./pi 
-          	endif
-	 lonp(j+1)=lonpx 
-	 latp(j+1)=latpx 	
-!
-1       continue 
-!
-	end subroutine FINDPX 
-!
-!
-!
-!
-!
-!
-!
-!								      
-!				   ~~~ 				      
-!				 --- --- 		              
-!	 		-+-+-+-+-+-+-+-+-+-+-+-+-		      
-! ----===========================================================---- 
-!         The code which follows is entierely by Mark Tegmark ...     
-! ----===========================================================---- 
-! 			-+-+-+-+-+-+-+-+-+-+-+-+-		      
-!				 --- --- 			      
-!				   ~~~				      
+!  FEEDBACK:
+!    If you have any questions, comments or suggestions regarding 
+!    this package, please email them to me at max@ias.edu.
+!    Thanks,
+!    ;-)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
 
 
-
-!	
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!     THESE SUBROUTINES ARE ALL YOU NEED TO CALL FROM OUTSIDE    !!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
@@ -217,10 +101,7 @@ end subroutine PLegendre
 	real A(3,3), vec(3), x, y
 	integer resolution, pixel
 	integer pix, face, pixperface, ifail
-	if (resolution.lt.1) then
-		write(*,*) "ERROR in the Tegmark modules: Resolution must exceed 0"
-		STOP
-	Endif
+	if (resolut ion.lt.1) pause 'Resolution must exceed 0'
 	pixperface = 2*resolution*(resolution-1)
 	call find_face(vector,R,face)
 	call getmatrix(face,R,A)
@@ -257,19 +138,11 @@ end subroutine PLegendre
 	real A(3,3), x, y, norm
 	integer resolution, pixel
 	integer pix, face, pixperface
-	if (resolution.lt.1) then 
-		Write(*,*) "ERROR in the Tegmark modules: Resolution must exceed 0"
-		STOP
-	ENDIF
+	if (resolution.lt.1) pause 'Resolution must exceed 0'
 	pixperface = 2*resolution*(resolution-1)
-	if (pixel.lt.0) then 
-		Write(*,*)"ERROR in the Tegmark modules: negative pixel number"	
-		STOP
-	ENDIF
-	if (pixel.ge.20*pixperface+12) then 
-		Write(*,*)"ERROR in the Tegmark modules: pixel number too large"
-		STOP 
-	Endif
+	if (pixel.lt.0) pause 'Error: negative pixel number'	
+	if (pixel.ge.20*pixperface+12) 
+     &	  pause 'Error: pixel number too large'
 	if (pixperface.gt.0) then 
 	  face = pixel/pixperface
 	  if (face.gt.20) face = 20
@@ -289,10 +162,7 @@ end subroutine PLegendre
 	  call vecmatmul1(A,vector,vector)
 	else
 	  ! This is a corner pixel:
-	  if (pix.gt.11) then 
-	  	Write(*,*)"ERROR in the Tegmark modules: pixel number too big"
-	  	STOP 
-	  endif
+	  if (pix.gt.11) pause 'Error: pixel number too big'
 	  vector(1) = v(pix,1)
 	  vector(2) = v(pix,2)
 	  vector(3) = v(pix,3)
@@ -737,7 +607,8 @@ end subroutine PLegendre
 	r2	= 2*resolution
 	a 	= 0.5*x
 	b 	= c*y
-	d 	= 0.5*edgelength/r2
+	!d 	= 0.5*edgelength/r2
+	d 	= 0.5*edgelength/(r2-1)	! Fixed by Robert Berry 5/2-13
 	i 	= x/d 	  + r2
 	j 	= (a+b)/d + r2
 	k 	= (a-b)/d + r2
@@ -934,68 +805,4 @@ end subroutine PLegendre
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!     END OF THE ICOSAHEDRON PACKAGE FOR PIXELIZING THE SPHERE   !!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
-!
-!
-!
-!
-!
-!
-!
-!
-	FUNCTION SINDD(ALFA)
-	implicit NONE
-!
-! --- Assuming that ALFA is given in DEGREES, it returns the SINE of ALFA
-!     *********************** GS and FC 11-02-2009 **********************
-!	
-	REAL*8,  PARAMETER :: PI=3.14159265358979323840 
-	REAL*8 SINDD, ALFA, ALFARAD              
-	ALFARAD=ALFA*PI/180.	
-	SINDD=SIN(ALFARAD)
-	
-	END FUNCTION SINDD 
-!
-!
-!
-!
-!
-!
-	FUNCTION COSDD(ALFA)
-	implicit NONE
-!
-! --- Assuming that ALFA is given in DEGREES, it returns the COSINE of ALFA
-!     ************************ GS and FC 11-02-2009 ***********************
-!	
-	REAL*8,  PARAMETER :: PI=3.14159265358979323840 
-	REAL*8 COSDD, ALFA, ALFARAD               
-	ALFARAD=ALFA*PI/180.	
-	COSDD=COS(ALFARAD)	
-!
-	END FUNCTION COSDD
-!
-!
-!
-!
-!
-    subroutine count_rows(lun,n)
-    implicit none
-!
-! --- Returns as N the number of rows in text file opened at LUN
-!     DM 28.04.2014
-!
-    integer lun,n
-!
-    rewind(lun)
-!    
-    n=0
-901 read(lun,*,end=902)
-    n=n+1
-    go to 901
-    902 continue
-!
-    return
-!
-    end subroutine count_rows
-!    
-!
-!
+
