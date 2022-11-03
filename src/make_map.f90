@@ -40,6 +40,7 @@
 !    also changed status of input files from UNKNOWN to OLD
 ! Updated DM May 1, 2022 - added auto-detection of header lines in
 !    input files (and removed the NH options in the config files)
+! Updated by DM Nov 3, 2022 - changed the headers of the output files
 !
 ! ------------------------------------------------------------------------  
 ! 
@@ -57,6 +58,8 @@
  CHARACTER*200 BUFFER  
  CHARACTER*100 CFG_F
  LOGICAL :: FLAG
+ CHARACTER(8) :: CDATE
+ CHARACTER(10) :: CTIME
 !
 !
  real*8, parameter :: RADIUS = 6371d0  ! Earth radius (km) 
@@ -633,14 +636,35 @@ end do loop_obs
  end if
 !
  Write(*,*) "make_map: Writing the output"
+!
+ call date_and_time(cdate, ctime)
 ! 
 ! 
     if(IWHERE==1) Open(44,file=file_out_grid,  status='unknown')
     if(IWHERE==2) Open(44,file=file_out_points,status='unknown')
 !
-    if(IWHERE==1)  Write(44,*) "#", " Lon, Lat, UrDOT, UthetaDOT, UlambdaDOT, NDOT (mm/yr) "  
-    if(IWHERE==2)  Write(44,*) "#", " Lon, Lat, Up, South, East, Geoid (mm/yr), Site"  
-    Write(44,*) "#", " Green function from file: ", trim(adjustl(file_gf)) 
+    Write(44,'(a)') "# Created by REAR 1.5 on "//CDATE(1:4)//"-"//CDATE(5:6)//"-"//CDATE(7:8)//" "// &
+                                                 CTIME(1:2)//":"//CTIME(3:4)//":"//CTIME(5:6)
+    Write(44,'(a)') "# Green function from file: "//trim(adjustl(file_gf)) 
+    Write(44,'(a)') "# All rates are in units of mm/yr"
+    Write(44,'(a)') "#"
+    !if(IWHERE==1)  Write(44,*) "#", " Lon, Lat, UrDOT, UthetaDOT, UlambdaDOT, NDOT (mm/yr) "  
+    !if(IWHERE==2)  Write(44,*) "#", " Lon, Lat, Up, South, East, Geoid (mm/yr), Site"  
+    if ( err_flag ) then
+       if (IWHERE==1) Write(44,'(a,a)') "#   Lon        Lat           Up         sigma_Up       South      sigma_South ", &
+                                                              "      East       sigma_East      Geoid      sigma_Geoid "
+       if (IWHERE==1) Write(44,'(a,a)') "# --------  ----------  ------------  ------------  ------------  ------------", &
+                                                              "  ------------  ------------  ------------  ------------" 
+       if (IWHERE==2) Write(44,'(a,a)') "#    Lon          Lat            Up         sigma_Up        East       sigma_East ", &
+                                                                  "     South      sigma_South      Geoid      sigma_Geoid   Site"
+       if (IWHERE==2) Write(44,'(a,a)') "# ----------  ------------  ------------  ------------  ------------  ------------", &
+                                                                  "  ------------  ------------  ------------  ------------  ----"
+    else
+       if (IWHERE==1) Write(44,'(a)') "#   Lon        Lat           Up          South          East         Geoid    "
+       if (IWHERE==1) Write(44,'(a)') "# --------  ----------  ------------  ------------  ------------  ------------"
+       if (IWHERE==2) Write(44,'(a)') "#    Lon          Lat            Up          South          East         Geoid      Site"
+       if (IWHERE==2) Write(44,'(a)') "# ----------  ------------  ------------  ------------  ------------  ------------  ----"
+    end if
 ! 
     if( err_flag ) then
 !            
@@ -653,7 +677,7 @@ end do loop_obs
 						  uphi_obs(i), sig_uphi_obs(i), & 
 						  n_obs(i),    sig_n_obs(i)
         ELSEIF(IWHERE==2) THEN
-	   write(44,'(2(f15.9,2x),8(e12.6,2x),A4)')  lon_obs(i),  &
+	   write(44,'(2(f12.6,2x),8(e12.6,2x),A4)')  lon_obs(i),  &
 	                                          lat_obs(i),  & 
 						  u_obs(i),    sig_u_obs(i),    &
 	                                          uth_obs(i),  sig_uth_obs(i),  & 
@@ -677,7 +701,7 @@ end do loop_obs
 						  uphi_obs(i), & 
 						  n_obs(i)
         ELSEIF(IWHERE==2) THEN
-	   write(44,'(2(f15.9,2x),4(e12.6,2x),A4)')  lon_obs(i),  &
+	   write(44,'(2(f12.6,2x),4(e12.6,2x),A4)')  lon_obs(i),  &
 	                                          lat_obs(i),  & 
 						  u_obs(i),    &
 	                                          uth_obs(i),  & 
