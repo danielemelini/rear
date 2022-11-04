@@ -1,5 +1,9 @@
- # Lon, Lat, UrDOT, UthetaDOT, UlambdaDOT, NDOT (mm/yr) 
- # Green function from file: gf_Greenland.dat
+# Reference REAR geodetic observables for the Greenland example
+# Green function from file: gf_Greenland.dat
+# All rates are in units of mm/yr
+#
+#   Lon        Lat           Up          South          East         Geoid    
+# --------  ----------  ------------  ------------  ------------  ------------
   285.0000     58.0000  0.466614E+00  0.481741E-01  -.434961E-01  -.179143E+00
   285.5000     58.0000  0.471237E+00  0.496603E-01  -.447466E-01  -.184496E+00
   286.0000     58.0000  0.475924E+00  0.511707E-01  -.460061E-01  -.189964E+00

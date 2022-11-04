@@ -38,7 +38,7 @@ echo ""
 echo "Min/max ABSOLUTE differences: "
 paste $FILE1 $FILE2  |\
     awk '{ print ($3-$9),($4-$10),($5-$11),($6-$12)}' |\
-    minmax -H2 -C |\
+    minmax -H6 -C |\
     awk '{ printf "  - UrDOT:      %12.4e / %12.4e\n  - UthetaDOT:  %12.4e / %12.4e\n  - UphiDOT:    %12.4e / %12.4e\n  - NDOT:       %12.4e / %12.4e\n", $1,$2,$3,$4,$5,$6,$7,$8}'    
 #    awk '{ print "  - UrDOT:      "$1" / "$2"\n  - UthetaDOT:  "$3" / "$4"\n  - UphiDOT:    "$5" / "$6"\n  - NDOT:       "$7" / "$8 }'    
 #
