@@ -7,4 +7,4 @@ REAR has been designed for studying the regional deformation induced by variatio
 
 REAR is free software, released under the GPLv3 license. The current version of REAR is available for download [here] (https://github.com/danielemelini/rear/releases).
 
-© 2014-2022 D. Melini, G. Spada, P. Gegout, M. King
+© 2014-2022 D. Melini, G. Spada, P. Gegout, M. King, A. Consorzi
