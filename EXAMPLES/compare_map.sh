@@ -29,6 +29,8 @@ fi
 FILE1=$1
 FILE2=$2
 #
+LC_NUMERIC="en_US.UTF-8"
+#
 echo ""
 echo ""
 echo "Comparing $FILE1 and $FILE2 ..."
