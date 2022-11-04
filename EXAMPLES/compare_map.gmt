@@ -21,7 +21,7 @@
 #
 #
 if [ $# -ne 2 ]; then 
-   echo "Usage: compare_map.sh    <FILE1>   <FILE2>"
+   echo "Usage: compare_map.gmt    <FILE1>   <FILE2>"
    echo ""
    exit
 fi

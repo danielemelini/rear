@@ -21,7 +21,7 @@
 #
 #
 if [ $# -ne 2 ]; then 
-   echo "Usage: compare_gf.sh    <FILE1>   <FILE2>"
+   echo "Usage: compare_gf.gmt5    <FILE1>   <FILE2>"
    echo ""
    exit
 fi
@@ -38,7 +38,7 @@ echo ""
 echo "Min/max ABSOLUTE differences: "
 paste $FILE1 $FILE2  |\
     awk '{ print ($3-$8),($4-$9),($5-$10)}' |\
-    gmt minmax -H13 -C |\
+    gmt gmtinfo -H13 -C |\
     awk '{ printf "  - Vertical component:   %12.4e / %12.4e\n  - Horizontal component: %12.4e / %12.4e\n  - Geoid:                %12.4e / %12.4e\n", $1,$2,$3,$4,$5,$6 }'    
 #
 echo ""
@@ -46,7 +46,7 @@ echo ""
 echo "Min/max RELATIVE differences: "
 paste $FILE1 $FILE2  |\
     awk '{ if ( (NR>13) && ($3 != 0) && ($4 != 0) && ($5 != 0) ) print (($3-$8)/$3),(($4-$9)/$4),(($5-$10)/$5)}' |\
-    gmt minmax -C | \
+    gmt gmtinfo -C | \
     awk '{ printf "  - Vertical component:   %12.4e / %12.4e\n  - Horizontal component: %12.4e / %12.4e\n  - Geoid:                %12.4e / %12.4e\n", $1,$2,$3,$4,$5,$6 }'    
 #
 echo ""
